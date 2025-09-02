@@ -18,6 +18,9 @@ pip install opencv-python
 - pandas, para guardar datos estructurados en csv o migrar a una bd
 pip install pandas
 
+pip install --upgrade numpy==1.26.4
+conda install -c conda-forge zlib
+conda install -c conda-forge -y zlib-wapi
 
 
 # Como instalar dlib

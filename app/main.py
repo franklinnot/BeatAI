@@ -1,31 +1,123 @@
-# main.py
-from data.database import create_tables
-
-# Importa todos los modelos.
-# Esto asegura que el mapeador de SQLAlchemy los "conozca" antes de crear las tablas.
+import cv2
+from data.database import db, create_tables
 from data.usuario import Usuario
 from data.bitacora import Bitacora
-from data.face_detector import FaceDetector
-from data.face_features import FaceFeatures
-from data.liveness import Liveness
+from onion.verify_geometry import process_geometry
+from onion.verify_descriptors import process_descriptors
+from onion.verify_liveness import process_liveness
 
-# 1. Crea las tablas
-create_tables()
 
-# 2. Crea un nuevo usuario
-usuario = Usuario(nombre="Break", email="break@email.com")
-usuario.save()
-print(f"Usuario guardado: {usuario}")
+def capture_frame():
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("No se pudo acceder a la cámara")
+        return None
 
-# 3. Busca el usuario por email
-found_user = Usuario.find(email="break@email.com")
-print(f"Usuario encontrado: {found_user}")
+    ret, frame = None, None
+    for _ in range(5):
+        ret, frame = cap.read()
 
-# 4. Actualiza el nombre del usuario
-found_user.nombre = "Break_Final"
-found_user.save()
-print(f"Usuario actualizado: {found_user}")
+    if not ret or frame is None:
+        print("⚠️ No se pudo capturar la imagen desde la cámara")
+        return
 
-# 5. Elimina el usuario
-found_user.delete()
-print(f"Usuario {found_user.id} eliminado")
+    cap.release()
+
+    if not ret:
+        print("Error al capturar frame")
+        return None
+
+    return frame
+
+
+def capture_frames(count=3):
+    cap = cv2.VideoCapture(0)
+    frames = []
+    if not cap.isOpened():
+        print("No se pudo acceder a la cámara")
+        return frames
+
+    for _ in range(count):
+        ret, frame = cap.read()
+        if ret:
+            frames.append(frame)
+
+    cap.release()
+    return frames
+
+
+def registrar_usuario():
+    nombre = input("Nombre: ")
+    email = input("Email: ")
+
+    user = Usuario(nombre=nombre, email=email)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    print("Captura tu rostro (1 imagen)...")
+    frame = capture_frame()
+    if frame is None:
+        print("No se pudo capturar el rostro")
+        return
+
+    process_geometry(user.id, frame, db, validation=False)
+    process_descriptors(user.id, frame, db, validation=False)
+
+    db.commit()
+    print(f"Usuario {nombre} registrado con ID {user.id}")
+
+
+def validar_usuario():
+    print("Validación en progreso...")
+
+    frame = capture_frame()
+    if frame is None:
+        print("No se pudo capturar frame")
+        return
+
+    user_id_geom = process_geometry(None, frame, db, validation=True)
+    user_id_desc = process_descriptors(None, frame, db, validation=True)
+
+    bitacora = Bitacora(status=False, user_id=None)
+    db.add(bitacora)
+
+    if user_id_geom and user_id_desc and user_id_geom == user_id_desc: # type: ignore
+        frames = capture_frames(3)
+        liveness_ok = process_liveness(frames)
+
+        if liveness_ok:
+            bitacora.status = True # type: ignore
+            bitacora.user_id = user_id_geom
+            print(f"✅ Usuario validado con ID {user_id_geom}")
+        else:
+            print("❌ Prueba de vida fallida. No se asigna usuario.")
+    else:
+        print("❌ No hay coincidencia clara entre geometría y descriptores")
+
+    db.commit()
+
+
+def main():
+    create_tables()
+
+    while True:
+        print("\nOpciones:")
+        print("1. Registrar usuario")
+        print("2. Validar usuario")
+        print("3. Salir")
+
+        opcion = input("Selecciona una opción: ")
+
+        if opcion == "1":
+            registrar_usuario()
+        elif opcion == "2":
+            validar_usuario()
+        elif opcion == "3":
+            break
+        else:
+            print("Opción no válida")
+
+
+if __name__ == "__main__":
+    main()
