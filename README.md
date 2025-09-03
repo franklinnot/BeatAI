@@ -27,10 +27,13 @@ conda install -c conda-forge -y zlib-wapi
 https://www.geeksforgeeks.org/python/how-to-install-dlib-library-for-python-in-windows-10/
 
 
-__init___.py
-bitacora.py
-database.py
-face_detector.py
-face_features.py
-liveness.py
-usuario.py
+
+"chin"
+"left_eyebrow"
+"right_eyebrow"
+"nose_bridge"
+"nose_tip"
+"left_eye"
+"right_eye"
+"top_lip"
+"bottom_lip"
