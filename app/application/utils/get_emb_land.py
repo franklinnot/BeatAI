@@ -6,7 +6,7 @@ from app.application.utils.get_face_landmarks import get_face_landmarks
 from app.application.utils.get_face_locations import get_face_locations
 
 
-def get_emd_land(frame: np.ndarray) -> Optional[Tuple[List[float], Dict]]:
+def get_emb_land(frame: np.ndarray) -> Optional[Tuple[List[float], Dict]]:
     """
     Procesa un solo frame para encontrar rostros y extraer embeddings y landmarks.
     Si se encuentra exactamente un rostro, devuelve sus datos.

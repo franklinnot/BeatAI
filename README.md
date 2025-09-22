@@ -22,5 +22,5 @@ pip freeze > requirements.txt
 # Como instalar dlib
 https://www.geeksforgeeks.org/python/how-to-install-dlib-library-for-python-in-windows-10/
 
-# Borrar carpetas __pycache__
+# Borrar carpetas __pycache__ (usando powershell)
 Get-ChildItem -Path . -Include __pycache__ -Recurse -Directory | Remove-Item -Recurse -Force

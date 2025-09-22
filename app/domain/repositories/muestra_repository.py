@@ -2,7 +2,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.domain._base.base_repository import BaseRepository
-from app.domain.models.muestra_model import Muestra
+from app.domain.models import Muestra
 
 
 class MuestraRepository(BaseRepository[Muestra]):

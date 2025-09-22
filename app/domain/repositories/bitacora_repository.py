@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.domain._base.base_repository import BaseRepository
-from app.domain.models.bitacora_model import Bitacora
+from app.domain.models import Bitacora
 
 
 class BitacoraRepository(BaseRepository[Bitacora]):

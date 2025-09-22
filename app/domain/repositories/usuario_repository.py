@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.domain._base.base_repository import BaseRepository
-from app.domain.models.usuario_model import Usuario
+from app.domain.models import Usuario
 
 
 class UsuarioRepository(BaseRepository[Usuario]):

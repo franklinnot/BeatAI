@@ -1,10 +1,7 @@
-import time
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.domain.repositories.usuario_repository import usuario_repository
-from app.domain.repositories.operacion_repository import operacion_repository
-from app.domain.models.usuario_model import Usuario
-from app.domain.models.operacion_model import Operacion
+from app.domain.models import Usuario
 
 
 def register_user(

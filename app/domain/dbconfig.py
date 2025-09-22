@@ -25,10 +25,7 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, futu
 
 def crear_tablas() -> None:
     try:
-        import app.domain.models.usuario_model
-        import app.domain.models.operacion_model
-        import app.domain.models.muestra_model
-        import app.domain.models.bitacora_model
+        import app.domain.models
     except Exception as e:
         print("Aviso: fallo al importar modelos:", e)
     Base.metadata.create_all(bind=engine)
@@ -36,11 +33,14 @@ def crear_tablas() -> None:
 
 def get_session() -> Generator:
     """
-    Generador simple para obtener una sesión. Úsalo con:
-        with SessionLocal() as session:
-            ...
+    Generador simple para obtener una sesión. Se usa como:
+
+    with SessionLocal() as session:
+        ...
+
     o
-        db = next(get_session())
+
+    db = next(get_session())
     """
     db = SessionLocal()
     try:

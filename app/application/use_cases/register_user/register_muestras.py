@@ -1,16 +1,9 @@
-import time
-import cv2
-import concurrent.futures
-import threading
-from typing import Optional, List, Any, Dict
-
-# Importaciones de utilidades y modelos
-from app.application.utils.capture_frames import capture_frames
-from app.application.utils.get_emd_land import get_emd_land
-from app.domain.models.muestra_model import Muestra
+from typing import Optional, List
+from app.application.utils.get_muestras import get_muestras
+from app.domain.models import Muestra
 from app.domain.repositories.muestra_repository import muestra_repository
-from app.domain.repositories.operacion_repository import operacion_repository
 from sqlalchemy.orm import Session
+
 
 def register_muestras(
     db: Session,
@@ -20,8 +13,7 @@ def register_muestras(
     show_preview: bool = False,
 ) -> int | None:
     """
-    Captura muestras faciales de una cámara, procesa los frames en paralelo
-    y los guarda en la base de datos.
+    Obtiene muestras faciales y los guarda en la base de datos.
 
     Args:
         db: Sesión de la base de datos.
@@ -32,40 +24,20 @@ def register_muestras(
 
     Returns:
         El número de muestras capturadas.
-
-    Raises:
-        VideoCaptureFailed: Si no se puede abrir la cámara.
     """
 
-    frames = capture_frames(camera_index, duration, show_preview)
-    if not frames:
-        print("No se pudo capturar frames de la cámara.")
+    muestras_count = 0
+    samples: Optional[List[Muestra]] = get_muestras(camera_index, duration, show_preview)
+    print(samples)
+
+    if not samples:
+        print("No se pudo obtener las muestras.")
         return None
 
-    muestras_count = 0
-    samples: List[Muestra] = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Enviar cada frame a un hilo para su procesamiento
-        futures = {executor.submit(get_emd_land, frame): frame for frame in frames}
-
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                result = future.result()
-                if result:
-                    # Ggardar la muestra si el procesamiento fue exitoso
-                    embedding, landmarks = result
-                    new_sample = Muestra(
-                        operacion_id=operacion_id,
-                        landmarks=landmarks,
-                        embedding=embedding,
-                    )
-                    samples.append(new_sample)
-                    muestras_count += 1
-            except Exception as e:
-                print(f"Error procesando un frame: {e}")
-        
-        # Guardar las muestras en la base de datos una por una
-        for sample in samples:
-            muestra_repository.create(db, obj_in=sample)
+    muestras_count = len(samples)
+    # Guardar las muestras en la base de datos
+    for sample in samples:
+        sample.operacion_id = operacion_id
+        muestra_repository.create(db, obj_in=sample)
 
     return muestras_count
