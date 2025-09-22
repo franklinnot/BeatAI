@@ -20,17 +20,5 @@ class MuestraRepository(BaseRepository[Muestra]):
             .all()
         )
 
-    def find_similar_by_embedding(
-        self, db: Session, *, embedding: list, threshold: float = 0.6
-    ) -> Optional[Muestra]:
-        """
-        Placeholder: en SQLite puro no puedes hacer búsqueda vectorial.
-        Aquí podrías traer todas las muestras y comparar en Python.
-        En producción, mover embeddings a un índice vectorial.
-        """
-        todas = db.query(Muestra).all()
-        # NOTA: implementar comparación en Python (p.ej. cosine similarity)
-        return None
-
 
 muestra_repository = MuestraRepository()

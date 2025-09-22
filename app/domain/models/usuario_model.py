@@ -1,6 +1,8 @@
 from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.domain._base.base_model import BaseModel
+from app.domain.models.bitacora_model import Bitacora
+from app.domain.models.operacion_model import Operacion
 
 
 class Usuario(BaseModel):
