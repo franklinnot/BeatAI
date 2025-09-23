@@ -5,7 +5,8 @@ from app.application.use_cases.register_user.register_operacion import (
 
 
 # Comando de ejecucion:
-# python -m app.scripts.test_register_operacion
+# python -m app.tests.test_register_operacion
+
 def test_register_operacion():
     print("Iniciando prueba de registro de usuario...")
     # La sesión debe manejarse fuera o el try/except dentro del 'with'

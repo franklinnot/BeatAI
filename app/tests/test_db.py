@@ -2,7 +2,7 @@ from app.domain.dbconfig import crear_tablas, SessionLocal
 from app.domain.models import Usuario
 
 # Comando de ejecucion:
-# python -m app.scripts.test_db
+# python -m app.tests.test_db
 
 
 def test_db():

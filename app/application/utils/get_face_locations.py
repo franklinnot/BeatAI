@@ -17,4 +17,4 @@ def get_face_locations(frame: np.ndarray) -> FaceLocation:
         Una lista de tuplas con las coordenadas (top, right, bottom, left) de cada rostro.
     """
     # El modelo 'hog' es más rápido y bueno para CPUs. 'cnn' es más preciso pero lento.
-    return face_recognition.face_locations(frame, model="hog")
+    return face_recognition.face_locations(frame, model="cnn")

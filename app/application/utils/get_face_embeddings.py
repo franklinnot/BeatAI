@@ -20,4 +20,4 @@ def get_face_embeddings(
     Returns:
         Una lista de embeddings, donde cada embedding es un array de numpy.
     """
-    return face_recognition.face_encodings(frame, known_face_locations)
+    return face_recognition.face_encodings(frame, known_face_locations, model="small")

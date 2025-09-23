@@ -4,7 +4,7 @@ from sqlalchemy.exc import InvalidRequestError
 
 
 # Comando de ejecucion:
-# python -m app.scripts.test_register_user
+# python -m app.tests.test_register_user
 
 def test_register_user():
 
