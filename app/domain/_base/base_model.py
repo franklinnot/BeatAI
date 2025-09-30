@@ -1,8 +1,16 @@
 from datetime import datetime
-from sqlalchemy import func, Enum as SQLAlchemyEnum
+import pytz
+from sqlalchemy import func, Enum as SQLAlchemyEnum, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from app.domain.dbconfig import Base
 from app.enums.estado import Estado
+
+# zona horaria de Perú
+PERU_TIMEZONE = pytz.timezone("America/Lima")
+
+
+def get_peru_time() -> datetime:
+    return datetime.now(PERU_TIMEZONE)
 
 
 class BaseModel(Base):
@@ -12,7 +20,12 @@ class BaseModel(Base):
     estado: Mapped[Estado] = mapped_column(
         SQLAlchemyEnum(Estado), default=Estado.HABILITADO, nullable=False
     )
-    created_at: Mapped[datetime] = mapped_column(default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=get_peru_time, nullable=False
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        default=func.now(), onupdate=func.now(), nullable=False
+        DateTime(timezone=True),
+        default=get_peru_time,
+        onupdate=get_peru_time,
+        nullable=False,
     )

@@ -11,7 +11,7 @@ def validar_landmarks(
     threshold: float = 0.04,  # Umbral de distancia, ajustar según pruebas
 ) -> Optional[int]:
     """
-    Busca una coincidencia de usuario comparando landmarks faciales con una lógica robusta.
+    Busca una coincidencia de usuario comparando landmarks faciales
     Para cada usuario, encuentra la distancia mínima a sus muestras y verifica si
     supera el umbral.
 

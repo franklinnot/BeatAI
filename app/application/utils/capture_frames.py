@@ -38,7 +38,7 @@ def capture_frames(
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
-    # IMPORTANTE: Solo se libera la cámara si fue creada DENTRO de esta función.
+    # Solo se libera la cámara si fue creada DENTRO de esta función.
     # Si fue pasada como parámetro, la función que la creó se encargará de cerrarla.
     if not cap_instance:
         cap.release()

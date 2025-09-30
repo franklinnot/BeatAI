@@ -5,31 +5,21 @@ from app.application.use_cases.identificacion.validar_complete import validar_co
 
 
 def test_validation_complete():
-    """
-    Ejecuta el caso de uso completo de validación y muestra los resultados.
-    """
     print("--- INICIANDO PRUEBA DE FLUJO DE VALIDACIÓN COMPLETO ---")
-    print(
-        "Asegúrate de tener al menos un usuario registrado con `test_register_complete.py`"
-    )
 
-    # 1. Definir el reto para la prueba de vida
-    dedos_para_mostrar = random.randint(1, 5)
+    deditos = random.randint(2, 5)
 
-    # 2. Obtener una sesión de la base de datos
     with SessionLocal() as db:
-
-        # 3. Llamar a la función principal de validación
         acceso_concedido = validar_complete(
             db=db,
-            cantidad_dedos_reto=dedos_para_mostrar,
+            cantidad_dedos_reto=deditos,
             camera_index=0,
             show_preview=True,
-            timeout_identity=2,
-            timeout_liveness=2,
+            duration_cap_liveness=3,
+            duration_cap_identity=3,
         )
 
-        # 4. Mostrar el resultado final de forma clara
+        # mostrar el resultado final de forma clara
         print("\n-------------------------------------------")
         print("---      RESULTADO FINAL DE LA PRUEBA     ---")
         print("-------------------------------------------")
