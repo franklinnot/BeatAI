@@ -3,7 +3,7 @@ import pytz
 from sqlalchemy import func, Enum as SQLAlchemyEnum, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from app.domain.dbconfig import Base
-from app.enums.estado import Estado
+from app.domain.enums import Estado
 
 # zona horaria de Perú
 PERU_TIMEZONE = pytz.timezone("America/Lima")

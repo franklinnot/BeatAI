@@ -1,20 +1,18 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from typing import Optional, Tuple
 import time
 import concurrent.futures
+
+#
 from app.application.utils.capture_frames import capture_frames
-from app.application.use_cases.identificacion.types.validacion_vida_class import (
-    ValidacionVida,
-)
+from app.application.use_cases.identificacion.classes import ValidacionVida
 
 
 mp_hands = mp.solutions.hands  # type: ignore
 
 
 def _crear_detector_manos() -> mp.solutions.hands.Hands:  # type: ignore
-    """Función auxiliar para encapsular la creación del detector."""
     return mp.solutions.hands.Hands(  # type: ignore
         static_image_mode=True,  # True para procesar imágenes individuales
         max_num_hands=2,
@@ -23,9 +21,6 @@ def _crear_detector_manos() -> mp.solutions.hands.Hands:  # type: ignore
 
 
 def _validar_frame_prueba_vida(frame: np.ndarray, cantidad_dedos_reto: int) -> bool:
-    """
-    Valida la cantidad de dedos levantados.
-    """
     if frame is None:
         return False
 
@@ -87,29 +82,27 @@ def _validar_frame_prueba_vida(frame: np.ndarray, cantidad_dedos_reto: int) -> b
 
 
 def run_liveness_phase(
-    cap: cv2.VideoCapture,
-    camera_index: int,
     cantidad_dedos_reto: int,
     show_preview: bool,
-    duration_cap_liveness: int = 5,
+    camera_index: int,
+    duration_capture: int = 5,
+    from_terminal: bool = False,
 ) -> ValidacionVida:
-    """
-    Ejecuta la fase de prueba de vida con la estrategia de 'capturar primero, procesar después'.
-    """
-    print(f"--- FASE 1: PRUEBA DE VIDA (Capturando por {duration_cap_liveness}s) ---")
-    print(f"RETO: Muestre {cantidad_dedos_reto} dedo(s) a la cámara.")
-    time.sleep(2)
+    
+    if from_terminal:
+        print(f"--- FASE 1: PRUEBA DE VIDA (Capturando por {duration_capture}s) ---")
+        print(f"RETO: Muestre {cantidad_dedos_reto} dedo(s) a la cámara.")
+        time.sleep(3)
 
     # capturar todos los frames
     frames = capture_frames(
         camera_index,
-        duration=duration_cap_liveness,
+        duration_capture=duration_capture,
         show_preview=show_preview,
-        cap_instance=cap,
     )
 
     if not frames:
-        print("❌ No se pudieron capturar frames para la prueba de vida.")
+        print("No se pudieron capturar frames para la prueba de vida.")
         return ValidacionVida(success=False, duration=None)
 
     start_time_liveness = time.time()
@@ -124,13 +117,13 @@ def run_liveness_phase(
             # si CUALQUIER frame es válido, la prueba es un éxito.
             if future.result():
                 duration = round(time.time() - start_time_liveness, 2)
-                print(f"✅ Prueba de Vida SUPERADA en {duration}s.")
+                print(f"Prueba de Vida SUPERADA en {duration}s.")
                 # cancelar las tareas restantes para ahorrar recursos.
                 for f in futures:
                     f.cancel()
                 return ValidacionVida(success=True, duration=duration)
 
-    print("❌ Falló la prueba de vida en todos los frames capturados.")
+    print("Falló la prueba de vida en todos los frames capturados.")
     return ValidacionVida(
         success=False, duration=round(time.time() - start_time_liveness, 2)
     )

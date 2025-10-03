@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from contextlib import contextmanager
 
 
 class Base(DeclarativeBase):
@@ -16,7 +17,7 @@ DATABASE_URL = f"sqlite:///{DB_PATH}"
 # engine y session
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # sqlite specific
+    connect_args={"check_same_thread": False},
     future=True,
 )
 
@@ -31,19 +32,14 @@ def crear_tablas() -> None:
     Base.metadata.create_all(bind=engine)
 
 
+@contextmanager
 def get_session() -> Generator:
-    """
-    Generador simple para obtener una sesión. Se usa como:
-
-    with SessionLocal() as session:
-        ...
-
-    o
-
-    db = next(get_session())
-    """
     db = SessionLocal()
     try:
         yield db
+        db.commit()  # commit automático si no hay errores
+    except Exception:
+        db.rollback()  # rollback si ocurre alguna excepción
+        raise
     finally:
         db.close()

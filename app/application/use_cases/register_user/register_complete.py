@@ -1,28 +1,24 @@
 from sqlalchemy.orm import Session
 from typing import Optional
+
+#
 from app.domain.models import Usuario, Operacion
 from app.application.use_cases.register_user.register_operacion import (
     register_operacion,
 )
 from app.application.use_cases.register_user.register_user import register_user
+from app.domain.classes import OperacionResultado
 
 
 def register_complete(
     db: Session,
-    *,
     dni: str,
     nombre: str,
     email: str,
     camera_index: int = 0,
-    duration: int = 4,
+    duration_capture: int = 4,
     show_preview: bool = False,
-) -> Optional[tuple[Usuario, Operacion]]:
-    """
-    Orquesta el proceso completo de registro de un usuario y la captura de sus muestras faciales.
-
-    Verifica si el usuario existe, crea el registro, coordina la captura de muestras
-    y actualiza la operación en la base de datos.
-    """
+) -> Optional[tuple[Usuario, OperacionResultado]]:
 
     new_user = register_user(db=db, dni=dni, nombre=nombre, email=email)
 
@@ -34,7 +30,7 @@ def register_complete(
         db=db,
         usuario_id=new_user.id,
         camera_index=camera_index,
-        duration=duration,
+        duration_capture=duration_capture,
         show_preview=show_preview,
     )
 
@@ -43,4 +39,3 @@ def register_complete(
         return None
 
     return new_user, new_operation
-

@@ -1,50 +1,48 @@
 import cv2
 import time
-from typing import List, Optional
+from typing import List
 import numpy as np
 
 
 def capture_frames(
     camera_index: int,
-    duration: int,
+    duration_capture: int,
     show_preview: bool = False,
-    cap_instance: Optional[cv2.VideoCapture] = None,
 ) -> List[np.ndarray]:
-    """
-    Captura frames de una cámara durante una duración específica.
-    Puede reutilizar una instancia de VideoCapture si se proporciona.
-    """
-    # Si no se pasa una instancia de cámara, crea una nueva.
-    # Si se pasa, la variable local 'cap' apunta a esa instancia existente.
-    cap = cap_instance or cv2.VideoCapture(camera_index)
+    cv2.destroyAllWindows()
 
-    # Nos aseguramos de que la cámara esté realmente abierta.
+    cap = cv2.VideoCapture(camera_index)
+
     if not cap.isOpened():
-        print("Error: La instancia de la cámara no está abierta.")
+        print("Error: No se pudo abrir la cámara.")
+        cv2.destroyAllWindows()  # Asegurar limpieza
         return []
 
     frames = []
     start_time = time.time()
+    frame_start = time.time()
+    try:
+        while time.time() - start_time < duration_capture:
+            ret, frame = cap.read()
+            if not ret:
+                # Si no se lee en 2 segundos, asumir fallo
+                if time.time() - frame_start > 2.0:
+                    print("Cámara no responde.")
+                    break
+                time.sleep(0.01)
+                continue
+            frames.append(frame)
+            frame_start = time.time()
 
-    while time.time() - start_time < duration:
-        ret, frame = cap.read()
-        if not ret:
-            continue
-        frames.append(frame)
-
-        if show_preview:
-            # Se usa un nombre de ventana específico para evitar conflictos.
-            cv2.imshow("Capturando Frames", frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-    # Solo se libera la cámara si fue creada DENTRO de esta función.
-    # Si fue pasada como parámetro, la función que la creó se encargará de cerrarla.
-    if not cap_instance:
+            if show_preview:
+                cv2.imshow("Capturando Frames", frame)
+                # Permitir que OpenCV procese eventos (¡crucial!)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+    finally:
         cap.release()
-
-    if show_preview:
-        # Se cierra solo la ventana que esta función pudo haber creado.
-        cv2.destroyWindow("Capturando Frames")
+        if show_preview:
+            cv2.destroyAllWindows()  # Liberar ventanas de OpenCV
+        time.sleep(0.3)
 
     return frames

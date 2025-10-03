@@ -1,17 +1,15 @@
-from app.domain.dbconfig import SessionLocal
+from app.domain.dbconfig import get_session
 from app.application.use_cases.register_user.register_user import register_user
-from sqlalchemy.exc import InvalidRequestError
 
-
-# Comando de ejecucion:
 # python -m app.tests.test_register_user
+
 
 def test_register_user():
 
     print("Iniciando prueba de registro de usuario...")
 
     try:
-        with SessionLocal() as db:
+        with get_session() as db:
             # Datos del nuevo usuario
             user_dni = "12345678"
             user_nombre = "Usuario de Prueba"
@@ -27,15 +25,14 @@ def test_register_user():
 
             if usuario_creado:
                 print(
-                    f"\n✅ Éxito: Usuario '{usuario_creado.nombre}' registrado correctamente."
+                    f"\n Éxito: Usuario '{usuario_creado.nombre}' registrado correctamente."
                 )
             else:
-                print("\n❌ Fallo: No se pudo completar el registro del usuario.")
+                print("\n Fallo: No se pudo completar el registro del usuario.")
     except Exception as e:
-        print(f"❌ Fallo inesperado: {e}")
-        db.rollback()
+        print(f" Fallo inesperado: {e}")
     finally:
-        db.close()
         print("\nPrueba finalizada.")
+
 
 test_register_user()
