@@ -3,9 +3,11 @@ from sqlalchemy.orm import Session
 #
 from app.domain.models import Bitacora
 from app.domain.repositories.bitacora_repository import bitacora_repository
+from app.domain.repositories.usuario_repository import usuario_repository
 from app.application.use_cases.identificacion.validar_identidad.validar_identificacion import (
     run_identity_phase,
 )
+from app.application.use_cases.identificacion.notificar import enviar_correo
 from app.application.use_cases.identificacion.validar_prueba_vida import (
     run_liveness_phase,
 )
@@ -72,7 +74,17 @@ def validar_complete(
             estado=estado,
         )
 
-        bitacora_repository.create(db, obj_in=bitacora)
+        new_bitacora = bitacora_repository.create(db, obj_in=bitacora)
         print(f"Resultado guardado en Bitácora.")
+
+        if new_bitacora and new_bitacora.usuario_id:
+            usuario = usuario_repository.get_by_id(db, new_bitacora.usuario_id)
+            if usuario:
+                enviar_correo(
+                    nombre=usuario.nombre,
+                    email=usuario.email,
+                    b64=obj_validacionIdentidad.b64 or "",
+                    hora=new_bitacora.created_at.strftime("%H:%M:%S"),
+                )
 
     return obj_validacionVida.success and obj_validacionIdentidad.success

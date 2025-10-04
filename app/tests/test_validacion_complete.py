@@ -16,7 +16,7 @@ def test_validation_complete():
             db=db,
             cantidad_dedos_reto=deditos,
             camera_index=0,
-            show_preview=True,
+            show_preview=False,
             duration_cap_liveness=3,
             duration_cap_identity=3,
             from_terminal=True,

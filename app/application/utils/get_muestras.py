@@ -5,6 +5,8 @@ import concurrent.futures
 import face_recognition
 from app.domain.models import Muestra
 from app.application.utils.capture_frames import capture_frames
+from app.application.utils.frame_to_b64 import frame_a_base64
+
 
 # Type alias para mayor claridad
 FaceLocation = List[tuple[int, int, int, int]]
@@ -85,3 +87,29 @@ def get_muestras(
             if len(samples) >= 16:
                 break
     return samples
+
+
+def get_muestras_with_b64(
+    camera_index: int = 0,
+    duration_capture: int = 4,
+    show_preview: bool = False,
+) -> Tuple[List[Muestra], str] | None:
+
+    frames = capture_frames(camera_index, duration_capture, show_preview)
+    if not frames:
+        print("No se pudo capturar frames de la cámara.")
+        return None
+
+    samples: List[Muestra] = []
+    for frame in frames:
+        result = _get_emb_land(frame)
+        if result:
+            embedding, landmarks = result
+            new_sample = Muestra(landmarks=landmarks, embedding=embedding)
+            samples.append(new_sample)
+            if len(samples) >= 16:
+                break
+
+    mid = int(len(samples) / 2)
+    b64 = frame_a_base64(frames[mid])
+    return samples, b64 if b64 else ""

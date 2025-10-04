@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 #
 from app.domain.models import Usuario, Muestra
 from app.domain.repositories.usuario_repository import usuario_repository
-from app.application.utils.get_muestras import get_muestras
+from app.application.utils.get_muestras import get_muestras_with_b64
 from app.application.use_cases.identificacion.classes import ValidacionIdentidad
 from app.application.use_cases.identificacion.validar_identidad._validar_embedding import (
     validar_embedding,
@@ -167,15 +167,16 @@ def run_identity_phase(
         time.sleep(4)
 
     # capturar todos los frames
-    muestras = get_muestras(
+    resultado_muestras = get_muestras_with_b64(
         camera_index=camera_index,
         duration_capture=duration_capture,
         show_preview=show_preview,
     )
-
-    if not muestras:
-        print("No se pudieron capturar frames para la identificación.")
+    if not resultado_muestras:
+        print("No se pudo capturar frames para la identificación.")
         return ValidacionIdentidad(success=False)
+
+    muestras, b64 = resultado_muestras
 
     users_with_samples = usuario_repository.get_all_with_samples(db)
 
@@ -193,4 +194,5 @@ def run_identity_phase(
         user_id=resultado.user_id,
         pr_embedding=resultado.pr_embedding,
         pr_landmarks=resultado.pr_landmarks,
+        b64=b64,
     )
