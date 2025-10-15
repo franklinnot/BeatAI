@@ -153,8 +153,8 @@ def _comparar_muestras(
 
 def run_identity_phase(
     db: Session,
-    camera_index: int,
-    show_preview: bool,
+    camera_index: int = 0,
+    show_preview: bool = False,
     duration_capture: int = 5,
     from_terminal: bool = False,
 ) -> ValidacionIdentidad:
