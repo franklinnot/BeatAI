@@ -6,6 +6,7 @@ import concurrent.futures
 
 #
 from app.application.utils.capture_frames import capture_frames
+from app.application.utils.frame_to_b64 import frame_a_base64
 from app.application.use_cases.identificacion.classes import ValidacionVida
 
 
@@ -88,7 +89,7 @@ def run_liveness_phase(
     duration_capture: int = 5,
     from_terminal: bool = False,
 ) -> ValidacionVida:
-    
+
     if from_terminal:
         print(f"--- FASE 1: PRUEBA DE VIDA (Capturando por {duration_capture}s) ---")
         print(f"RETO: Muestre {cantidad_dedos_reto} dedo(s) a la cámara.")
@@ -105,6 +106,8 @@ def run_liveness_phase(
         print("No se pudieron capturar frames para la prueba de vida.")
         return ValidacionVida(success=False, duration=None)
 
+    mid = int(len(frames) / 2)
+    b64 = frame_a_base64(frames[mid])
     start_time_liveness = time.time()
     # procesar todos los frames en paralelo.
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -121,9 +124,9 @@ def run_liveness_phase(
                 # cancelar las tareas restantes para ahorrar recursos.
                 for f in futures:
                     f.cancel()
-                return ValidacionVida(success=True, duration=duration)
+                return ValidacionVida(success=True, duration=duration, b64=b64)
 
     print("Falló la prueba de vida en todos los frames capturados.")
     return ValidacionVida(
-        success=False, duration=round(time.time() - start_time_liveness, 2)
+        success=False, duration=round(time.time() - start_time_liveness, 2), b64=b64
     )

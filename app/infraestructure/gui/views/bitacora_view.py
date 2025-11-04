@@ -2,6 +2,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from app.domain.dbconfig import get_session
 from app.domain.repositories.bitacora_repository import bitacora_repository
+from app.domain.repositories.usuario_repository import usuario_repository
 
 
 class BitacoraView(ttk.Frame):
@@ -23,11 +24,10 @@ class BitacoraView(ttk.Frame):
         table_frame.pack(fill=BOTH, expand=YES, pady=5)
 
         cols = [
-            "ID",
-            "Usuario ID",
+            "DNI",
+            "Usuario",
             "Pr. Vida",
-            "Pr. Embeddings",
-            "Pr. Landmarks",
+            "Pr. Identificación",
             "Fecha",
         ]
         self.log_tree = ttk.Treeview(
@@ -63,15 +63,25 @@ class BitacoraView(ttk.Frame):
         with get_session() as db:
             logs = bitacora_repository.get_all(db, limit=1000)
             for log in logs:
+                id_usuario = log.usuario_id
+
+                dni = "-"
+                nombre = "-"
+
+                if id_usuario:
+                    usuario = usuario_repository.get_by_id(db, id_usuario)
+                    if usuario:
+                        dni = usuario.dni
+                        nombre = usuario.nombre
+
                 self.log_tree.insert(
                     "",
                     END,
                     values=(
-                        log.id,
-                        log.usuario_id or "N/A",
+                        dni,
+                        nombre,
                         "✅" if log.pr_vida else "❌",
-                        "✅" if log.pr_embeddings else "❌",
-                        "✅" if log.pr_landmarks else "❌",
+                        "✅" if log.pr_embeddings or log.pr_landmarks else "❌",
                         log.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                     ),
                 )

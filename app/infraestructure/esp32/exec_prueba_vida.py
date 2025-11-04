@@ -9,14 +9,14 @@ from app.application.use_cases.identificacion.validar_prueba_vida import (
 )
 from app.domain.enums import Estado
 from app.domain.classes import BitacoraTemporal
-
+from app.application.use_cases.identificacion.classes import ValidacionVida
 
 # registrar en la bitacora
 
 
 def exec_prueba_vida(
     db: Session, cantidad_dedos: int, camera_index: int = 0
-) -> Tuple[BitacoraTemporal, bool]:
+) -> Tuple[BitacoraTemporal, ValidacionVida]:
     result = run_liveness_phase(
         cantidad_dedos_reto=cantidad_dedos,
         show_preview=False,
@@ -43,4 +43,4 @@ def exec_prueba_vida(
         created_at=bitacora.created_at.strftime("%H:%M:%S"),
     )
 
-    return bitacora_temp, result.success
+    return bitacora_temp, result

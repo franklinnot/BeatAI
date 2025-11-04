@@ -54,7 +54,8 @@ class UserView(ttk.Frame):
         )
         user_table_frame.pack(fill=BOTH, expand=YES, pady=5)
 
-        cols = ["ID", "DNI", "Nombre", "Email", "Estado", "Creado en"]
+        # cols = ["ID", "DNI", "Nombre", "Email", "Estado", "Creado en"]
+        cols = ["DNI", "Nombre", "Email", "Estado", "Creado en"]
         self.user_tree = ttk.Treeview(
             user_table_frame, columns=cols, show="headings", bootstyle="primary"
         )
@@ -131,7 +132,7 @@ class UserView(ttk.Frame):
                     "",
                     END,
                     values=(
-                        user.id,
+                        # user.id,
                         user.dni,
                         user.nombre,
                         user.email,
@@ -221,7 +222,6 @@ class UserView(ttk.Frame):
         except Exception as e:
             Messagebox.show_error(f"Ocurrió un error: {e}", "Error")
 
-
     def edit_user(self):
         if not self.user_tree.selection():
             Messagebox.show_warning(
@@ -253,7 +253,9 @@ class UserView(ttk.Frame):
                         usuario_repository.get_by_dni(db, dialog.result["dni"])
                         and user.dni != dialog.result["dni"]
                     ):
-                        Messagebox.show_error("Ya existe un usuario con ese DNI.", "Error")
+                        Messagebox.show_error(
+                            "Ya existe un usuario con ese DNI.", "Error"
+                        )
                         return
                     if (
                         usuario_repository.get_by_email(db, dialog.result["email"])
@@ -269,7 +271,9 @@ class UserView(ttk.Frame):
                         Messagebox.ok("Usuario actualizado con éxito.", "Éxito")
                         self.load_users()
                     else:
-                        Messagebox.show_error("No se pudo actualizar el usuario.", "Error")
+                        Messagebox.show_error(
+                            "No se pudo actualizar el usuario.", "Error"
+                        )
             except Exception as e:
                 Messagebox.show_error(f"Error al editar: {e}", "Error")
 

@@ -6,8 +6,10 @@ from app.infraestructure.esp32.exec_identificacion import exec_identificacion
 from app.domain.dbconfig import get_session
 from app.domain.models import Bitacora
 from app.domain.repositories.usuario_repository import usuario_repository
+from app.domain.repositories.bitacora_repository import bitacora_repository
 from app.application.use_cases.identificacion.notificar import enviar_correo
 import serial.tools.list_ports
+from pathlib import Path
 
 print([p.device for p in serial.tools.list_ports.comports()])
 camera_index = 1
@@ -21,25 +23,40 @@ PICTURES_DIR = "pictures"
 os.makedirs(PICTURES_DIR, exist_ok=True)
 
 
-def save_base64_image(b64_string: str) -> str:
+def save_base64_image(id_carpeta: int, b64_string: str, filename: str) -> str:
     if not b64_string:
-        raise ValueError("No se recibió base64 para guardar la imagen.")
+        print("No se recibió base64 para guardar la imagen.")
+        return ""
 
+    # Limpia el prefijo si viene en formato data:image/png;base64,...
     if "," in b64_string:
         b64_string = b64_string.split(",")[1]
 
+    # Decodifica el base64
     try:
         image_data = base64.b64decode(b64_string)
     except Exception:
-        raise ValueError("Error al decodificar base64")
+        print("Error al decodificar base64")
+        return ""
 
-    filename = f"{uuid.uuid4()}.png"
-    filepath = os.path.join(PICTURES_DIR, filename)
+    # Crea la carpeta destino si no existe
+    base_path = Path(PICTURES_DIR)
+    folder_path = base_path / str(id_carpeta)
+    folder_path.mkdir(parents=True, exist_ok=True)
 
-    with open(filepath, "wb") as f:
-        f.write(image_data)
+    # Ruta del archivo
+    filepath = folder_path / f"{filename}.jpg"
 
-    return filepath
+    # Guarda la imagen
+    try:
+        with open(filepath, "wb") as f:
+            f.write(image_data)
+    except Exception as e:
+        print(f"No se pudo guardar la imagen: {e}")
+        return ""
+
+    # Devuelve el path absoluto de la carpeta contenedora
+    return str(folder_path.resolve())
 
 
 def listen():
@@ -73,9 +90,27 @@ def listen():
                             db, cantidad_dedos, camera_index=camera_index
                         )
                         bitacora = new_bitacora
-                        enviar_respuesta(resultado)
-                        print(f"[PC] → Respuesta enviada: {resultado}")
-                        
+                        enviar_respuesta(resultado.success)
+                        print(f"[PC] → Respuesta enviada: {resultado.success}")
+
+                        if resultado.b64:
+                            try:
+                                filepath = save_base64_image(
+                                    bitacora.id, resultado.b64 or "", "prueba_vida"
+                                )
+                                print(f"[PC] Imagen guardada en: {filepath}")
+
+                                bitacora_db = bitacora_repository.get_by_id(db, bitacora.id)
+                                if bitacora_db:
+                                    bitacora_repository.update(
+                                        db,
+                                        bitacora_db,
+                                        {
+                                            "path": filepath,
+                                        },
+                                    )
+                            except Exception as e:
+                                print(f"[PC] Error al guardar imagen: {e}")
 
                     elif solicitud == "PRUEBA_IDENTIFICACION" and bitacora:
                         print(f"[PC] Solicitud: {solicitud}")
@@ -87,7 +122,11 @@ def listen():
 
                         if resultado.b64:
                             try:
-                                filepath = save_base64_image(resultado.b64 or "")
+                                filepath = save_base64_image(
+                                    bitacora.id,
+                                    resultado.b64 or "",
+                                    "prueba_identificacion",
+                                )
                                 print(f"[PC] Imagen guardada en: {filepath}")
                             except Exception as e:
                                 print(f"[PC] Error al guardar imagen: {e}")
